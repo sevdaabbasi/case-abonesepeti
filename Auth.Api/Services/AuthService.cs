@@ -1,17 +1,23 @@
 using Auth.Api.Models;
 using Auth.Api.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 
 namespace Auth.Api.Services;
 
 public class AuthService
 {
     private readonly IUserRepository _repo;
+    private readonly JwtSettings _jwt;
 
-    public AuthService(IUserRepository repo)
+    public AuthService(IUserRepository repo, IOptions<JwtSettings> jwtOptions)
     {
         _repo = repo;
+        _jwt = jwtOptions.Value;
     }
 
+    
+    
     public async Task<(bool Success, string Message, User? User)> RegisterAsync(RegisterRequest req)
     {
         if (req.Password != req.ConfirmPassword)

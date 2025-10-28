@@ -6,4 +6,6 @@ public interface IUserRepository
 {
     Task<User?> GetByPhoneAsync(string phone);
     Task CreateAsync(User user);
+    Task UpdateAsync(User user);
+    Task<User?> GetByRefreshTokenAsync(string refreshToken);
 }
