@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using Auth.Api.Dtos.Requests;
+using Auth.Api.Dtos.Responses;
 using Auth.Api.Models;
 using Auth.Api.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -64,7 +66,11 @@ public class AuthService
     public async Task<(bool Success, string Message, User? User, AuthTokens tokens)> RegisterAsync(RegisterRequest req)
     {
         if (req.Password != req.ConfirmPassword)
+        {
+            
             return (false, "Parolalar eşleşmiyor.", null, null);
+        }
+            
 
         var existing = await _repo.GetByPhoneAsync(req.Phone);
         if (existing != null)
@@ -102,7 +108,7 @@ public class AuthService
         if (user == null) return (false, "Kullanıcı bulunamadı.", null, null);
 
         if (!BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash))
-            return (false, "Parola yanlış.", null, null);
+            return (false, "Girilen bilgiler yanlış.", null, null);
 
         // new refresh token
         var refresh = GenerateRefreshToken();
@@ -151,7 +157,7 @@ public class AuthService
     }
     
     
-    // Basit doğrulama — her istekte gönderilen phone+password ile kontrol
+    
     public async Task<User?> ValidateCredentialsAsync(string phone, string password)
     {
         var user = await _repo.GetByPhoneAsync(phone);

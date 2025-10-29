@@ -11,24 +11,32 @@ public class ServicesController : ControllerBase
 {
 
     [Authorize(Roles = "User")]
-    [HttpGet("service1")]
-    public IActionResult Service1() => Ok(new { message = "User-only service" });
+    [HttpGet("user")]
+    public IActionResult Service1()
+    {
+        var phone = User.Claims.FirstOrDefault(c => c.Type == "phone")?.Value;
+        return Ok(new { message = "Bu servise yalnızca kullanıcılar erişebilir.." });
 
+    }
 
     [Authorize(Roles = "Admin")]
-    [HttpGet("service2")]
-    public IActionResult Service2() => Ok(new { message = "Admin-only service" });
+    [HttpGet("admin")]
+    public IActionResult Service2()
+    {
+        var phone = User.Claims.FirstOrDefault(c => c.Type == "phone")?.Value;
+        return Ok(new { message = "Servise yalnızca Admin erişebilir.. " });
+    } 
 
     [Authorize]
-    [HttpGet("service3")]
+    [HttpGet("user,admin")]
     public IActionResult Service3()
     {
         var phone = User.Claims.FirstOrDefault(c => c.Type == "phone")?.Value;
         var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-        return Ok(new { message = $"Service3'e {role} olarak eriştin", phone });
+        return Ok(new { message = $"Service'e {role} olarak eriştin", phone });
     }
 
     [AllowAnonymous]
-    [HttpGet("service4")]
-    public IActionResult Service4() => Ok(new { message = "Public service4" });
+    [HttpGet("herkes")]
+    public IActionResult Service4() => Ok(new { message = "Bu servise erişmek için token gerekmez..." });
 }

@@ -2,6 +2,7 @@ using MongoDB.Driver;
 using Auth.Api.Models;
 using Auth.Api.Repositories;
 using Auth.Api.Services;
+using Microsoft.AspNetCore.Mvc;
 
 public class UserRepository : IUserRepository
 {
@@ -24,4 +25,5 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByRefreshTokenAsync(string refreshToken) =>
         await _users.Find(u => u.RefreshTokens.Any(rt => rt.Token == refreshToken)).FirstOrDefaultAsync();
+    
 }

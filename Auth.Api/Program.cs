@@ -4,10 +4,27 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Options;
 using System.Text;
+using Auth.Api.Middlewares;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
+using Serilog;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
 var mongoSettings = builder.Configuration.GetSection("MongoSettings").Get<MongoSettings>()
     ?? throw new InvalidOperationException("MongoSettings bulunamadı!");
@@ -33,7 +50,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // true olmalı
+    options.RequireHttpsMetadata = true;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -86,10 +103,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<HeartBeatMiddleware>();
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
+
 app.UseHttpsRedirection();
 app.UseAuthentication(); 
 app.UseAuthorization();
-app.MapGet("/", () => Results.Redirect("/swagger"));
 app.MapControllers();
 app.Run();
 

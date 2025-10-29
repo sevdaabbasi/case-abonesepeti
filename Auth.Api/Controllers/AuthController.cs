@@ -1,3 +1,4 @@
+using Auth.Api.Dtos.Requests;
 using Auth.Api.Models;
 using Auth.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +17,7 @@ public class AuthController : ControllerBase
         _auth = auth;
     }
     
-    
+    [AllowAnonymous]
     [HttpPost("register")]
     
     public async Task<IActionResult> Register([FromBody] RegisterRequest req)
@@ -26,7 +27,7 @@ public class AuthController : ControllerBase
         return Ok(new { message });
     }
 
-    
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req)
     {
@@ -35,6 +36,7 @@ public class AuthController : ControllerBase
         return Ok(new {message , tokens});
     }
    
+    [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequest req)
     {
