@@ -6,6 +6,7 @@ using Auth.Api.Dtos.Responses;
 using Auth.Api.Models;
 using Auth.Api.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
@@ -16,11 +17,13 @@ public class AuthService
 {
     private readonly IUserRepository _repo;
     private readonly JwtSettings _jwt;
+    private readonly IMemoryCache _cache;
 
-    public AuthService(IUserRepository repo, IOptions<JwtSettings> jwtOptions)
+    public AuthService(IUserRepository repo,IMemoryCache cache, IOptions<JwtSettings> jwtOptions)
     {
         _repo = repo;
         _jwt = jwtOptions.Value;
+        _cache = cache;
     }
 
     private string GenerateAccessToken(User user, out DateTime expiresAt)
@@ -63,6 +66,7 @@ public class AuthService
         };
     }
     
+    //Register
     public async Task<(bool Success, string Message, User? User, AuthTokens tokens)> RegisterAsync(RegisterRequest req)
     {
         if (req.Password != req.ConfirmPassword)
@@ -101,16 +105,30 @@ public class AuthService
     }
     
     
-
+// Login
     public async Task<(bool Success, string Message, User? User, AuthTokens? Tokens)> LoginAsync(LoginRequest req)
     {
+        //telefon bazlı Ratelimtiing
+        var cacheKey = $"login_attempts:{req.Phone}";
+        int attempts = _cache.Get<int>(cacheKey);
+
+        if (attempts >= 5)
+        {
+            return(false, "5 başarısız denemden sonra 1 dk boyunca engellendiniz", null, null);
+        }
+        
+        
+        
         var user = await _repo.GetByPhoneAsync(req.Phone);
-        if (user == null) return (false, "Kullanıcı bulunamadı.", null, null);
-
-        if (!BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash))
+        if (user == null || !BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash))
+        {
+            // Başarısız denemeyi say
+            _cache.Set(cacheKey, attempts + 1, TimeSpan.FromMinutes(1));
             return (false, "Girilen bilgiler yanlış.", null, null);
-
-        // new refresh token
+        }
+        // sayaç sıfırlandı
+        _cache.Remove(cacheKey);
+       
         var refresh = GenerateRefreshToken();
         user.RefreshTokens.Add(refresh);
 

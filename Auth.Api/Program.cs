@@ -9,6 +9,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using AspNetCoreRateLimit;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,26 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+//RateLimiting
+builder.Services.AddMemoryCache();
+
+builder.Services.Configure<IpRateLimitOptions>(options =>
+{
+    options.GeneralRules = new List<RateLimitRule>
+    {
+        new RateLimitRule
+        {
+            Endpoint = "*:/api/auth/login", 
+            Limit = 5,                      
+            Period = "1m"                   
+        }
+    };
+});
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
+
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
@@ -106,6 +127,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<HeartBeatMiddleware>();
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
+app.UseIpRateLimiting();
 
 app.UseHttpsRedirection();
 app.UseAuthentication(); 

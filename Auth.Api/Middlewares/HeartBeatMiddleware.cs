@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Net;
 namespace Auth.Api.Middlewares;
 
