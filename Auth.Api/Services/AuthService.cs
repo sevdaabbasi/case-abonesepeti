@@ -48,7 +48,7 @@ public class AuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
     
-    // Helper: güvenli random refresh token oluştur
+    // Refresh token Generate
     private RefreshToken GenerateRefreshToken()
     {
         var randomBytes = RandomNumberGenerator.GetBytes(64);
@@ -80,14 +80,14 @@ public class AuthService
             Role = role
         };
         
-        // İlk refresh token
+        // first refresh token
         var refresh = GenerateRefreshToken();
         user.RefreshTokens.Add(refresh);
 
 
         await _repo.CreateAsync(user);
         
-        // Access token oluştur
+        // Access token add
         var accessToken = GenerateAccessToken(user, out var atExpires);
         var tokens = new AuthTokens(accessToken, refresh.Token, atExpires, refresh.ExpiresAt);
         
@@ -104,11 +104,11 @@ public class AuthService
         if (!BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash))
             return (false, "Parola yanlış.", null, null);
 
-        // Yeni refresh token oluştur
+        // new refresh token
         var refresh = GenerateRefreshToken();
         user.RefreshTokens.Add(refresh);
 
-        // DB'de güncelle
+        
         await _repo.UpdateAsync(user);
 
         var accessToken = GenerateAccessToken(user, out var atExpires);
@@ -119,24 +119,31 @@ public class AuthService
     
     public async Task<(bool Success, string Message, AuthTokens? Tokens)> RefreshAsync(RefreshRequest req)
     {
-        // Kullanıcıyı refresh token üzerinden bul
-        var user = await _repo.GetByPhoneAsync(req.Phone);
+       
+        var handler = new JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(req.AccessToken);
+
+        var phoneClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "Phone")?.Value;
+        if (phoneClaim == null) return (false, "Token geçersiz.", null);
+
+        var user = await _repo.GetByPhoneAsync(phoneClaim);
         if (user == null) return (false, "Kullanıcı bulunamadı.", null);
+
 
         var existingRefresh = user.RefreshTokens.FirstOrDefault(rt => rt.Token == req.RefreshToken);
         if (existingRefresh == null) return (false, "Refresh token bulunamadı.", null);
         if (!existingRefresh.IsActive) return (false, "Refresh token geçersiz veya süresi dolmuş.", null);
 
-        // Yeni refresh token oluştur ve eskiyi iptal et (rotate)
+        // rotate
         var newRefresh = GenerateRefreshToken();
         existingRefresh.RevokedAt = DateTime.UtcNow;
         existingRefresh.ReplacedByToken = newRefresh.Token;
         user.RefreshTokens.Add(newRefresh);
 
-        // DB güncelle
+       
         await _repo.UpdateAsync(user);
 
-        // Yeni access token
+       
         var accessToken = GenerateAccessToken(user, out var atExpires);
         var tokens = new AuthTokens(accessToken, newRefresh.Token, atExpires, newRefresh.ExpiresAt);
 

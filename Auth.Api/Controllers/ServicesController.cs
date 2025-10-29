@@ -9,9 +9,6 @@ namespace Auth.Api.Controllers;
 [Route("api/[controller]")]
 public class ServicesController : ControllerBase
 {
-  
-
-  
 
     [Authorize(Roles = "User")]
     [HttpGet("service1")]
