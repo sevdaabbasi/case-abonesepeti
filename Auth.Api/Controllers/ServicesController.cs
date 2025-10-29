@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using Auth.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Auth.Api.Controllers;
@@ -7,65 +9,29 @@ namespace Auth.Api.Controllers;
 [Route("api/[controller]")]
 public class ServicesController : ControllerBase
 {
-    private readonly AuthService _auth;
+  
 
-    public ServicesController(AuthService auth)
-    {
-        _auth = auth;
-    }
+  
 
-    // Helper: headerlerden phone/password al ve doğrula
-    private async Task<(bool Success, string? Message, Models.User? User)> AuthenticateFromHeaders()
-    {
-        if (!Request.Headers.TryGetValue("X-Phone", out var phone) ||
-            !Request.Headers.TryGetValue("X-Password", out var password))
-            return (false, "X-Phone veya X-Password header'ları eksik.", null);
-
-        var user = await _auth.ValidateCredentialsAsync(phone, password);
-        if (user == null) return (false, "Kimlik doğrulama başarısız.", null);
-        return (true, null, user);
-    }
-
-    // 1. servis — sadece User rolü
+    [Authorize(Roles = "User")]
     [HttpGet("service1")]
-    public async Task<IActionResult> Service1()
-    {
-        var (ok, msg, user) = await AuthenticateFromHeaders();
-        if (!ok) return Unauthorized(new { message = msg });
+    public IActionResult Service1() => Ok(new { message = "User-only service" });
 
-        if (user!.Role != Models.Role.User)
-            return Forbid();
 
-        return Ok(new { message = "Service1'e User olarak eriştin.", phone = user.Phone });
-    }
-
-    // 2. servis — sadece Admin rolü
+    [Authorize(Roles = "Admin")]
     [HttpGet("service2")]
-    public async Task<IActionResult> Service2()
-    {
-        var (ok, msg, user) = await AuthenticateFromHeaders();
-        if (!ok) return Unauthorized(new { message = msg });
+    public IActionResult Service2() => Ok(new { message = "Admin-only service" });
 
-        if (user!.Role != Models.Role.Admin)
-            return Forbid();
-
-        return Ok(new { message = "Service2'ye Admin olarak eriştin.", phone = user.Phone });
-    }
-
-    // 3. servis — her iki rol
+    [Authorize]
     [HttpGet("service3")]
-    public async Task<IActionResult> Service3()
+    public IActionResult Service3()
     {
-        var (ok, msg, user) = await AuthenticateFromHeaders();
-        if (!ok) return Unauthorized(new { message = msg });
-
-        return Ok(new { message = $"Service3'e {user!.Role} rolü ile eriştin.", phone = user.Phone });
+        var phone = User.Claims.FirstOrDefault(c => c.Type == "phone")?.Value;
+        var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+        return Ok(new { message = $"Service3'e {role} olarak eriştin", phone });
     }
 
-    // 4. servis — public (token/headers olmadan)
+    [AllowAnonymous]
     [HttpGet("service4")]
-    public IActionResult Service4()
-    {
-        return Ok(new { message = "Public service4 — herkese açık." });
-    }
+    public IActionResult Service4() => Ok(new { message = "Public service4" });
 }
