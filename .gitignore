@@ -8,6 +8,7 @@
 
 appsettings.Development.json
 appsettings.json
+Properties/launchSettings.json
 
 # User-specific files
 *.rsuser

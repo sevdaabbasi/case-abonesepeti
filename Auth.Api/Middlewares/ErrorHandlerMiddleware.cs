@@ -24,7 +24,6 @@ public class ErrorHandlerMiddleware
                           $"Method: {context.Request.Method}" +
                           $" QueryString: {context.Request.QueryString} " +
                           $"StatusCode: {context.Response.StatusCode}");
-            Log.Error(ex, "İsteği işlerken işlenmemiş bir istisna oluştu.");
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = 500;

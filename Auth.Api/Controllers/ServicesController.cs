@@ -9,14 +9,12 @@ namespace Auth.Api.Controllers;
 [Route("api/services")]
 public class ServicesController : ControllerBase
 {
-
     [Authorize(Roles = "User")]
     [HttpGet("user")]
     public IActionResult Service1()
     {
         var phone = User.Claims.FirstOrDefault(c => c.Type == "Phone")?.Value;
-        return Ok(new { message = "User token 'ı ile istek atıldı" , phone});
-
+        return Ok(new { message = "User token 'ı ile istek atıldı", phone });
     }
 
     [Authorize(Roles = "Admin")]
@@ -24,8 +22,8 @@ public class ServicesController : ControllerBase
     public IActionResult Service2()
     {
         var phone = User.Claims.FirstOrDefault(c => c.Type == "Phone")?.Value;
-        return Ok(new { message = $"User token 'ı ile istek atıldı", phone});
-    } 
+        return Ok(new { message = "Admin token 'ı ile istek atıldı", phone });
+    }
 
     [Authorize]
     [HttpGet("user,admin")]
