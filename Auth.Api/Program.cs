@@ -124,8 +124,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<HeartBeatMiddleware>();
 app.UseMiddleware<ErrorHandlerMiddleware>();
+app.UseMiddleware<HeartBeatMiddleware>();
+
 
 app.UseIpRateLimiting();
 
