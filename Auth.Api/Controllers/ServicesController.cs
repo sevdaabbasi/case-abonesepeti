@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Auth.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/services")]
 public class ServicesController : ControllerBase
 {
 
@@ -14,8 +14,8 @@ public class ServicesController : ControllerBase
     [HttpGet("user")]
     public IActionResult Service1()
     {
-        var phone = User.Claims.FirstOrDefault(c => c.Type == "phone")?.Value;
-        return Ok(new { message = "Bu servise yalnızca kullanıcılar erişebilir.." });
+        var phone = User.Claims.FirstOrDefault(c => c.Type == "Phone")?.Value;
+        return Ok(new { message = "User token 'ı ile istek atıldı" , phone});
 
     }
 
@@ -23,15 +23,15 @@ public class ServicesController : ControllerBase
     [HttpGet("admin")]
     public IActionResult Service2()
     {
-        var phone = User.Claims.FirstOrDefault(c => c.Type == "phone")?.Value;
-        return Ok(new { message = "Servise yalnızca Admin erişebilir.. " });
+        var phone = User.Claims.FirstOrDefault(c => c.Type == "Phone")?.Value;
+        return Ok(new { message = $"User token 'ı ile istek atıldı", phone});
     } 
 
     [Authorize]
     [HttpGet("user,admin")]
     public IActionResult Service3()
     {
-        var phone = User.Claims.FirstOrDefault(c => c.Type == "phone")?.Value;
+        var phone = User.Claims.FirstOrDefault(c => c.Type == "Phone")?.Value;
         var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
         return Ok(new { message = $"Service'e {role} olarak eriştin", phone });
     }

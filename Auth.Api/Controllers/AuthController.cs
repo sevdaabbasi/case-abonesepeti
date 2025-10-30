@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Auth.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auth")]
 public class AuthController : ControllerBase
 {
     private readonly AuthService _auth;
@@ -24,7 +24,7 @@ public class AuthController : ControllerBase
     {
         var (success, message, user, tokens) = await _auth.RegisterAsync(req);
         if (!success) return BadRequest(new { message });
-        return Ok(new { message });
+        return Ok(new { message, tokens });
     }
 
     [AllowAnonymous]
