@@ -20,8 +20,6 @@ public class HeartBeatMiddleware
             await context.Response.WriteAsync("Healthy");
             return;
         }
-
-        
         await next(context);
     }
 }

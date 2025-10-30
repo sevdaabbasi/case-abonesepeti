@@ -180,7 +180,6 @@ public class AuthService
     {
         var user = await _repo.GetByPhoneAsync(phone);
         if (user == null) return null;
-        //return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash) ? user : null;
         if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash)) return null;
         return user;
     }
