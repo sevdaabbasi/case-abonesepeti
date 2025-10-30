@@ -34,7 +34,7 @@ public class AuthService
 
         var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id ?? ""),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
             new Claim("Phone", user.Phone),
             new Claim(ClaimTypes.Role, user.Role.ToString())
         };
@@ -80,7 +80,7 @@ public class AuthService
         if (existing != null)
             return (false, "Bu telefon numarası ile zaten kayıt var.", null, null);
 
-        if (!Enum.TryParse<Role>(req.Role, true, out var role))
+        if (!Enum.TryParse<Role>(req.Role?.Trim(), true, out var role))
             role = Role.User;
 
         var user = new User

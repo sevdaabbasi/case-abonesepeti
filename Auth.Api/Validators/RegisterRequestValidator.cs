@@ -11,7 +11,7 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 
         RuleFor(x => x.Password)
             .NotEmpty()
-            .MinimumLength(10).WithMessage("Parola en az 10 karakter olmalı.")
+            .MinimumLength(5).WithMessage("Parola en az 5 karakter olmalı.")
             .Matches("[A-Z]").WithMessage("En az bir büyük harf içermeli.")
             .Matches("[a-z]").WithMessage("En az bir küçük harf içermeli.")
             .Matches("[0-9]").WithMessage("En az bir rakam içermeli.")
