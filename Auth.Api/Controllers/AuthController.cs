@@ -16,13 +16,16 @@ public class AuthController : ControllerBase
     {
         _auth = auth;
     }
-    
+
     [AllowAnonymous]
     [HttpPost("register")]
-    
     public async Task<IActionResult> Register([FromBody] RegisterRequest req)
     {
-        var (success, message, user, tokens) = await _auth.RegisterAsync(req);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ??
+                        Request.Headers["X-Forwarded-For"].FirstOrDefault() ??
+                        "unknown";
+
+        var (success, message, user, tokens) = await _auth.RegisterAsync(req, ipAddress);
         if (!success) return BadRequest(new { message });
         return Ok(new { message, tokens });
     }
@@ -31,16 +34,26 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req)
     {
-        var (success, message, user, tokens) = await _auth.LoginAsync(req);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ??
+                        Request.Headers["X-Forwarded-For"].FirstOrDefault() ??
+                        "unknown";
+
+        var (success, message, user, tokens) = await _auth.LoginAsync(req, ipAddress);
         if (!success) return Unauthorized(new { message });
-        return Ok(new {message , tokens});
+        return Ok(new { message, tokens });
     }
-   
+
     [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequest req)
     {
-        var (success, message, tokens) = await _auth.RefreshAsync(req);
+        //istek yapan IP adrs.
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ??
+                        Request.Headers["X-Forwarded-For"].FirstOrDefault() ??
+                        "unknown";
+
+
+        var (success, message, tokens) = await _auth.RefreshAsync(req, ipAddress);
         if (!success) return BadRequest(new { message });
         return Ok(new { message, tokens });
     }

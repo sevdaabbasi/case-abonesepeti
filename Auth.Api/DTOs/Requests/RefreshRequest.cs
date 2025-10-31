@@ -1,3 +1,7 @@
 namespace Auth.Api.Dtos.Requests;
 
-public record RefreshRequest(string AccessToken, string RefreshToken);
+public class RefreshRequest
+{
+    public string AccessToken { get; set; }
+    public string RefreshToken { get; set; }
+}

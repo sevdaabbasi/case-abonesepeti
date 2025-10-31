@@ -7,7 +7,7 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
     {
         RuleFor(x => x.Phone)
             .NotEmpty().WithMessage("Telefon boş olamaz.")
-            .Matches(@"^\+?\d{10,15}$").WithMessage("Geçerli bir telefon numarası girin."); 
+            .Matches(@"^\+?\d{10,15}$").WithMessage("Geçerli bir telefon numarası girin.");
 
         RuleFor(x => x.Password)
             .NotEmpty()
@@ -20,10 +20,5 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
         RuleFor(x => x.ConfirmPassword)
             .NotEmpty()
             .Equal(x => x.Password).WithMessage("Parolalar eşleşmiyor.");
-
-        RuleFor(x => x.Role)
-            .NotEmpty()
-            .Must(r => r == "User" || r == "Admin")
-            .WithMessage("Role ya 'User' ya da 'Admin' olmalı.");
     }
 }
